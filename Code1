@@ -1,0 +1,47 @@
+# clean the environment
+rm(list = ls())
+
+# loading required packages
+library(tm)
+library(caTools)
+library(SnowballC)
+
+# reading data set
+tweet <- read.csv('TweetsDataSet.csv', stringsAsFactors = F)
+set.seed(123)
+spl = sample.split(tweet$label, SplitRatio = 0.025)
+tweet_samp = subset(tweet, spl == T)
+  
+# Creating Corpus
+corp <- Corpus(VectorSource(tweet_samp$tweet))
+
+# Preprocessing 
+
+a= c(stopwords("danish"),stopwords("dutch"),stopwords("english"),stopwords("finnish"),stopwords("french"),
+     stopwords("german"),stopwords("hungarian"),stopwords("italian"),stopwords("norwegian"),stopwords("portuguese"),stopwords("russian"),stopwords("spanish"),stopwords("swedish"))
+
+# creating a function for all preprocessing steps
+Pre_Process <- function(c){
+  
+  c= tm_map(c, tolower)
+  c= tm_map(c, removePunctuation)
+  c= tm_map(c, removeNumbers)
+  c= tm_map(c, removeWords, a)
+  c= tm_map(c, stemDocument)
+  c= tm_map(c, stripWhitespace)
+  # c= tm_map(c, PlainTextDocument)
+  
+}
+
+# Pre processing the corpus
+corp_pre = Pre_Process(corp)
+
+# df = TermDocumentMatrix(corp_pre)
+
+# Creating Document term matrix
+df = DocumentTermMatrix(corp)
+df = data.frame(as.matrix(df))
+
+# Creating Data frame from tdm
+df = cbind(df, label = tweet_samp$label)
+
